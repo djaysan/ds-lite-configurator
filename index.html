@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DS Lite Configurator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── Reset ── */
+    * {
+      padding: 0;
+      margin: 0;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    body {
+      background: #ffffff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Color tokens ── */
+    :root {
+      --shell-top:         #f0f0f0;
+      --shell-top-shadow:  #cccccc;
+      --hinge-mid:         #d6d6d6;
+      --shell-bot:         #f0f0f0;
+      --shell-bot-shadow:  #cccccc;
+      --dpad:              #f0f0f0;
+      --dpad-shadow:       #cccccc;
+      --dpad-label:        #888888;
+      --btn-a:             #f0f0f0;
+      --btn-a-shadow:      #cccccc;
+      --btn-a-label:       #888888;
+      --btn-b:             #f0f0f0;
+      --btn-b-shadow:      #cccccc;
+      --btn-b-label:       #888888;
+      --btn-x:             #f0f0f0;
+      --btn-x-shadow:      #cccccc;
+      --btn-x-label:       #888888;
+      --btn-y:             #f0f0f0;
+      --btn-y-shadow:      #cccccc;
+      --btn-y-label:       #888888;
+      --startsel:          #f0f0f0;
+      --startsel-shadow:   #cccccc;
+      --black:             #111111;
+    }
+
+    /* ── Particle canvas (fixed fullscreen background) ── */
+    #particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Nav bar ── */
+    .site-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      height: 60px;
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+    }
+
+    .nav-brand {
+      font-size: 0.88rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #111111;
+    }
+
+    .nav-brand span {
+      color: #999999;
+      font-weight: 400;
+    }
+
+    /* Dark pill CTA — matches bramus pen style */
+    .download-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 20px;
+      background: #111111;
+      color: #ffffff;
+      border: none;
+      border-radius: 100px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      font-family: 'Inter', system-ui, sans-serif;
+      white-space: nowrap;
+    }
+
+    .download-btn:hover  { background: #333333; }
+    .download-btn:active { transform: scale(0.97); }
+
+    .download-btn.loading {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    .download-btn svg {
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+    }
+
+    /* ── Page layout ── */
+    .page {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      padding-top: 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 28px;
+      padding-bottom: 48px;
+    }
+
+    /* ── DS wrapper ── */
+    .img-container {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── DS body ── */
+    .nintendo-ds {
+      width: 414px;
+      height: 431px;
+      position: relative;
+    }
+
+    /* ── Top screen ── */
+    .top-screen {
+      position: absolute;
+      width: 100%;
+      height: 46.5%;
+      border-radius: 15px 15px 5px 5px;
+      background: var(--shell-top);
+      box-shadow:
+        inset 10px 10px 12px -2px var(--shell-top-shadow),
+        inset -2px 5px 3px 1px var(--shell-top-shadow),
+        inset -5px 5px 5px 2px white,
+        0px -1px 2px 2px var(--shell-top-shadow);
+      transition: background 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+    }
+
+    .screen {
+      position: absolute;
+      width: 51.5%;
+      height: 83.5%;
+      border-radius: 3px;
+      top: 9.5%;
+      left: 24%;
+      box-shadow: 0px 0px 3px 0px rgba(0, 0, 0, 0.35);
+      pointer-events: none;
+    }
+
+    .screen::after {
+      position: absolute;
+      content: '';
+      width: 91%;
+      height: 87%;
+      box-shadow: 0px 0px 1px 2px rgba(0, 0, 0, 0.5);
+      left: 4%;
+      top: 6%;
+      background: rgb(73, 73, 73);
+      background: linear-gradient(323deg, rgba(73,73,73,1) 42%, rgba(245,243,245,1) 85%);
+    }
+
+    .speaker-hole {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      background: var(--black);
+      border-radius: 2.5px;
+      pointer-events: none;
+    }
+
+    .speaker-hole::after {
+      position: absolute;
+      content: '';
+      height: 5px;
+      width: 5px;
+      border-radius: 2.5px;
+      background: var(--black);
+      left: 16px;
+    }
+
+    .speaker-hole::before {
+      position: absolute;
+      content: '';
+      height: 5px;
+      width: 5px;
+      border-radius: 2.5px;
+      background: var(--black);
+      left: 31px;
+    }
+
+    #sh1 { left: 30px;  top: 94px; }
+    #sh2 { left: 30px;  top: 110px; }
+    #sh3 { left: 346px; top: 95px; }
+    #sh4 { left: 346px; top: 110px; }
+
+    /* ── Hinge ── */
+    .hinge {
+      position: absolute;
+      width: 99.5%;
+      top: 46.5%;
+      height: 28px;
+      border-radius: 25px;
+      z-index: 3;
+      background: linear-gradient(
+        0deg,
+        var(--shell-top-shadow) 0%,
+        var(--hinge-mid) 10%,
+        var(--shell-top) 65%,
+        var(--shell-top-shadow) 100%
+      );
+      box-shadow: 0px 5px 10px -1px var(--shell-top-shadow);
+      transition: background 0.3s, box-shadow 0.3s;
+      pointer-events: none;
+    }
+
+    .hinge::after {
+      position: absolute;
+      content: '';
+      width: 2px;
+      height: 100%;
+      background: var(--shell-top-shadow);
+      transition: background 0.3s;
+      left: 49px;
+    }
+
+    .hinge::before {
+      position: absolute;
+      content: '';
+      width: 2px;
+      height: 100%;
+      background: var(--shell-top-shadow);
+      transition: background 0.3s;
+      left: 364px;
+    }
+
+    .mic {
+      position: absolute;
+      width: 4px;
+      height: 10px;
+      border-radius: 2px;
+      background: var(--black);
+      left: 49.5%;
+      top: 8px;
+    }
+
+    .light {
+      position: absolute;
+      height: 67%;
+      width: 4px;
+      top: 12%;
+      border-radius: 10px;
+      right: 25px;
+      background: linear-gradient(0deg, rgba(106,87,82,1) 0%, rgba(205,186,186,1) 65%, rgba(106,87,82,1) 100%);
+    }
+
+    .light::after {
+      content: '';
+      position: absolute;
+      height: 100%;
+      width: 4px;
+      top: 0;
+      border-radius: 10px;
+      left: 8px;
+      background: linear-gradient(0deg, rgba(92,107,73,1) 0%, rgba(211,212,183,1) 65%, rgba(123,142,98,1) 100%);
+    }
+
+    /* ── Bottom screen ── */
+    .bottom-screen {
+      position: absolute;
+      width: 99.5%;
+      height: 50%;
+      bottom: 0;
+      border-radius: 3px 3px 14px 14px;
+      background: var(--shell-bot);
+      box-shadow: 0px 1px 2px 2px var(--shell-bot-shadow);
+      transition: background 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+    }
+
+    .bottom-screen .screen {
+      top: 24px;
+      height: 168px;
+      width: 52%;
+      background: var(--shell-bot);
+      z-index: 1;
+      transition: background 0.3s;
+    }
+
+    .bottom-screen .screen::after {
+      background: rgb(73, 73, 73);
+      background: linear-gradient(140deg, rgba(73,73,73,1) 42%, rgba(245,243,245,1) 85%);
+    }
+
+    .bottom-screen .screen::before {
+      content: '';
+      position: absolute;
+      width: 102%;
+      height: 109%;
+      left: -1%;
+      top: -7%;
+      z-index: -1;
+      border-radius: 5px;
+      box-shadow:
+        10px 7px 10px 3px var(--shell-bot-shadow),
+        -6px 4px 5px 2px var(--shell-bot),
+        -12px 4px 8px 3px var(--shell-bot);
+    }
+
+    /* ── D-pad ── */
+    .d-pad {
+      position: absolute;
+      width: 18px;
+      height: 54px;
+      background: var(--dpad);
+      border-radius: 3px;
+      left: 34px;
+      top: 61px;
+      border: 2px solid var(--dpad-shadow);
+      cursor: pointer;
+      transition: background 0.3s, border-color 0.3s, filter 0.15s;
+      z-index: 5;
+    }
+
+    .d-pad:hover { filter: brightness(0.88); }
+
+    .d-pad::before {
+      position: absolute;
+      content: '';
+      width: 18px;
+      height: 54px;
+      background: var(--dpad);
+      border-radius: 3px;
+      border: 2px solid var(--dpad-shadow);
+      transform: rotate(90deg);
+      top: -2px;
+      left: -2px;
+      transition: background 0.3s, border-color 0.3s;
+    }
+
+    .d-pad::after {
+      position: absolute;
+      content: '';
+      width: 18px;
+      height: 54px;
+      background: var(--dpad);
+      border-radius: 3px;
+      top: 0px;
+      left: 0px;
+      transition: background 0.3s;
+    }
+
+    .d-pad-marker {
+      position: absolute;
+      width: 2px;
+      height: 11px;
+      background: var(--dpad-label);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.18), 0 -1px 0 rgba(0,0,0,0.18);
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    #dpm1 { left: 8px;  top: 6px; }
+    #dpm2 { left: 8px;  top: 38px; }
+    #dpm3 { left: 25px; top: 22px; transform: rotate(90deg); }
+    #dpm4 { left: -8px; top: 22px; transform: rotate(90deg); }
+
+    /* ── ABXY buttons ── */
+    .button {
+      position: absolute;
+      width: 21px;
+      height: 18px;
+      padding-top: 3px;
+      border: 1px solid transparent;
+      border-radius: 50%;
+      z-index: 5;
+      font-size: 0.7rem;
+      font-weight: 400;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.18), 0 -1px 0 rgba(0,0,0,0.18);
+      cursor: pointer;
+      transition: background 0.3s, border-color 0.3s, color 0.3s, box-shadow 0.3s, filter 0.15s;
+      user-select: none;
+      text-align: center;
+    }
+
+    .button:hover { filter: brightness(0.88); }
+
+    #X {
+      right: 35px; top: 45px;
+      background: var(--btn-x);
+      border-color: var(--btn-x-shadow);
+      color: var(--btn-x-label);
+      box-shadow: 3px 2px 3px -2px var(--btn-x-shadow), inset 2px 2px 3px -1px rgba(255,255,255,0.15);
+    }
+    #A {
+      right: 12px; top: 69px;
+      background: var(--btn-a);
+      border-color: var(--btn-a-shadow);
+      color: var(--btn-a-label);
+      box-shadow: 3px 2px 3px -2px var(--btn-a-shadow), inset 2px 2px 3px -1px rgba(255,255,255,0.15);
+    }
+    #B {
+      right: 35px; top: 92px;
+      background: var(--btn-b);
+      border-color: var(--btn-b-shadow);
+      color: var(--btn-b-label);
+      box-shadow: 3px 2px 3px -2px var(--btn-b-shadow), inset 2px 2px 3px -1px rgba(255,255,255,0.15);
+    }
+    #Y {
+      right: 59px; top: 69px;
+      background: var(--btn-y);
+      border-color: var(--btn-y-shadow);
+      color: var(--btn-y-label);
+      box-shadow: 3px 2px 3px -2px var(--btn-y-shadow), inset 2px 2px 3px -1px rgba(255,255,255,0.15);
+    }
+
+    /* ── Start / Select ── */
+    .small-button {
+      position: absolute;
+      width: 11px;
+      height: 11px;
+      border: 1px solid var(--startsel-shadow);
+      border-radius: 50%;
+      bottom: 53px;
+      right: 70px;
+      box-shadow: 2px 2px 3px -2px var(--startsel-shadow);
+      background: var(--startsel);
+      cursor: pointer;
+      transition: background 0.3s, border-color 0.3s, filter 0.15s;
+      z-index: 5;
+    }
+
+    .small-button:hover { filter: brightness(0.88); }
+
+    #select { bottom: 29px; right: 70px; }
+
+    #start::after {
+      position: absolute;
+      content: 'START';
+      font-size: 7px;
+      color: var(--shell-bot-shadow);
+      left: 15px;
+      top: 2px;
+      pointer-events: none;
+      transition: color 0.3s;
+    }
+
+    #select::after {
+      position: absolute;
+      content: 'SELECT';
+      font-size: 7px;
+      color: var(--shell-bot-shadow);
+      left: 15px;
+      top: 2px;
+      pointer-events: none;
+      transition: color 0.3s;
+    }
+
+    /* ── Shell zone hover ── */
+    .top-screen:hover,
+    .bottom-screen:hover {
+      filter: brightness(0.94);
+    }
+
+    /* ── Theme preset buttons (light pill style) ── */
+    .themes {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 480px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .theme-btn {
+      padding: 7px 17px;
+      border-radius: 100px;
+      border: 1.5px solid rgba(0, 0, 0, 0.13);
+      background: rgba(255, 255, 255, 0.75);
+      color: #555555;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .theme-btn:hover {
+      background: rgba(0, 0, 0, 0.05);
+      color: #111111;
+      border-color: rgba(0, 0, 0, 0.22);
+    }
+
+    .theme-btn.active {
+      background: #111111;
+      color: #ffffff;
+      border-color: #111111;
+    }
+
+    /* ── Color popup — matches nav download button style ── */
+    .color-popup {
+      position: fixed;
+      z-index: 9999;
+      background: #111111;
+      border: none;
+      border-radius: 20px;
+      padding: 14px 16px 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.15s, transform 0.15s;
+      pointer-events: none;
+      width: 244px;
+    }
+
+    .color-popup.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: all;
+    }
+
+    .popup-label {
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 11px;
+    }
+
+    .swatches {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .swatch {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2.5px solid transparent;
+      cursor: pointer;
+      transition: transform 0.12s, border-color 0.12s;
+      outline: none;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.15);
+    }
+
+    .swatch.light-swatch {
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+    }
+
+    .swatch:hover { transform: scale(1.18); }
+
+    .swatch.active {
+      border-color: #fff;
+      transform: scale(1.12);
+    }
+
+    /* ── Footer credit ── */
+    .site-footer {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.72rem;
+      color: rgba(0,0,0,0.28);
+      padding: 0 0 28px;
+    }
+
+    .site-footer a {
+      color: rgba(0,0,0,0.4);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .site-footer a:hover { color: #111111; }
+
+    .site-footer .sep { opacity: 0.4; }
+
+    /* ── Export overlay (shown while capturing) ── */
+    .export-flash {
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,0.6);
+      z-index: 200;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .export-flash.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <!-- Animated particle background -->
+  <canvas id="particles"></canvas>
+
+  <!-- Navigation bar -->
+  <nav class="site-nav">
+    <span class="nav-brand">DS Lite <span>Configurator</span></span>
+    <button class="download-btn" id="download-btn">
+      <!-- Download arrow icon -->
+      <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7 1.5v7M4.5 6.5L7 9l2.5-2.5M2.5 12h9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Save as PNG
+    </button>
+  </nav>
+
+  <!-- Export flash overlay -->
+  <div class="export-flash" id="export-flash"></div>
+
+  <!-- Main page -->
+  <div class="page">
+
+    <!-- DS with floating shadow -->
+    <div class="img-container" id="ds-container">
+      <div class="nintendo-ds" id="ds">
+
+        <!-- TOP HALF — click = top shell colour -->
+        <div class="top-screen" data-zone="shell-top">
+          <div class="speaker-hole" id="sh1"></div>
+          <div class="speaker-hole" id="sh2"></div>
+          <div class="screen"></div>
+          <div class="speaker-hole" id="sh3"></div>
+          <div class="speaker-hole" id="sh4"></div>
+        </div>
+
+        <!-- HINGE (decorative, no click zone) -->
+        <div class="hinge">
+          <div class="mic"></div>
+          <div class="light"></div>
+        </div>
+
+        <!-- BOTTOM HALF — background click = bottom shell colour -->
+        <div class="bottom-screen" data-zone="shell-bot">
+          <div class="screen"></div>
+
+          <!-- D-PAD -->
+          <div class="d-pad" data-zone="dpad">
+            <div class="d-pad-marker" id="dpm1"></div>
+            <div class="d-pad-marker" id="dpm2"></div>
+            <div class="d-pad-marker" id="dpm3"></div>
+            <div class="d-pad-marker" id="dpm4"></div>
+          </div>
+
+          <!-- ABXY — each is its own independent zone -->
+          <div class="button" id="X" data-zone="btn-x">X</div>
+          <div class="button" id="A" data-zone="btn-a">A</div>
+          <div class="button" id="B" data-zone="btn-b">B</div>
+          <div class="button" id="Y" data-zone="btn-y">Y</div>
+
+          <!-- START / SELECT -->
+          <div class="small-button" id="start"  data-zone="startsel"></div>
+          <div class="small-button" id="select" data-zone="startsel"></div>
+        </div>
+
+      </div><!-- /.nintendo-ds -->
+    </div><!-- /.img-container -->
+
+    <!-- Theme preset buttons -->
+    <div class="themes" id="themes">
+      <button class="theme-btn" data-theme="sfc">SFC</button>
+      <button class="theme-btn" data-theme="snes">SNES</button>
+      <button class="theme-btn" data-theme="dmg">DMG</button>
+      <button class="theme-btn" data-theme="monster">Monster</button>
+      <button class="theme-btn" data-theme="gamecube">GameCube</button>
+      <button class="theme-btn" data-theme="reset">Reset</button>
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <a href="https://github.com/djaysan" target="_blank" rel="noopener">@djaysan</a>
+      <span class="sep">·</span>
+      <a href="https://ko-fi.com/H2H81I6YY1" target="_blank" rel="noopener">☕ Buy me a coffee</a>
+    </footer>
+
+  </div><!-- /.page -->
+
+  <!-- Colour picker popup -->
+  <div class="color-popup" id="popup">
+    <div class="popup-label"  id="popup-label"></div>
+    <div class="swatches"     id="popup-swatches"></div>
+  </div>
+
+  <script>
+    /* ═══════════════════════════════════════════════════════════════════
+       PARTICLE BACKGROUND
+       Ring-shaped particles (hollow circles) drifting upward, closely
+       matching the bramus "Google Antigravity" CSS Houdini ring-particles
+       aesthetic — blue/violet hues on white, varied size and opacity.
+    ═══════════════════════════════════════════════════════════════════ */
+
+    (function () {
+      const canvas = document.getElementById('particles');
+      const ctx    = canvas.getContext('2d');
+      let   pts    = [];
+      const COUNT  = 110;
+
+      function resize() {
+        canvas.width  = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+
+      function mkPt() {
+        /* Mix of near-static particles and slow-drifters for organic feel */
+        const drifting = Math.random() > 0.4;
+        return {
+          x:   Math.random() * canvas.width,
+          y:   Math.random() * canvas.height,
+          r:   Math.random() * 3.5 + 0.8,   /* ring radius */
+          lw:  Math.random() * 0.9 + 0.3,   /* stroke width */
+          op:  Math.random() * 0.28 + 0.08,
+          vy:  drifting ? -(Math.random() * 0.18 + 0.04) : -(Math.random() * 0.02),
+          vx:  (Math.random() - 0.5) * 0.06,
+          wb:  Math.random() * Math.PI * 2,
+          ws:  Math.random() * 0.012 + 0.003,
+          /* hue 215–265: cornflower blue → medium purple */
+          h:   215 + Math.random() * 50,
+          s:   45  + Math.random() * 25,
+          l:   50  + Math.random() * 20,
+        };
+      }
+
+      function init() {
+        pts = Array.from({ length: COUNT }, mkPt);
+      }
+
+      function tick() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pts.forEach(p => {
+          p.y  += p.vy;
+          p.wb += p.ws;
+          p.x  += Math.sin(p.wb) * 0.22 + p.vx;
+          if (p.y < -8) { p.y = canvas.height + 8; p.x = Math.random() * canvas.width; }
+          /* Draw as hollow ring (stroke only, no fill) */
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.strokeStyle = `hsla(${p.h}, ${p.s}%, ${p.l}%, ${p.op})`;
+          ctx.lineWidth   = p.lw;
+          ctx.stroke();
+        });
+        requestAnimationFrame(tick);
+      }
+
+      resize();
+      window.addEventListener('resize', () => { resize(); init(); });
+      init();
+      tick();
+    })();
+
+
+    /* ═══════════════════════════════════════════════════════════════════
+       COLOUR PALETTES
+    ═══════════════════════════════════════════════════════════════════ */
+
+    const SHELL_COLORS = [
+      { name: 'Red',           color: '#bd1724', shadow: '#8b1019' },
+      { name: 'Metal Rose',    color: '#D4A4A2', shadow: '#b88077' },
+      { name: 'Metal Grey',    color: '#B9B9B9', shadow: '#909090' },
+      { name: 'White',         color: '#f0f0f0', shadow: '#cccccc' },
+      { name: 'Light Blue',    color: '#88DDE7', shadow: '#5ba9b3' },
+      { name: 'Night Blue',    color: '#1A0E49', shadow: '#120a35' },
+      { name: 'Pink',          color: '#f6c5ce', shadow: '#eba4b2' },
+      { name: 'Black',         color: '#1c1c1c', shadow: '#0a0a0a' },
+      { name: 'Purple',        color: '#6b3fa0', shadow: '#4a2b72' },
+    ];
+
+    /* Rows 1–3 from supplier catalogue + Pink */
+    const BUTTON_COLORS = [
+      { name: 'Monster Red',      color: '#cc1100', shadow: '#990d00' },
+      { name: 'Red',              color: '#cc2200', shadow: '#991a00' },
+      { name: 'Carmine Red',      color: '#a01020', shadow: '#700c18' },
+      { name: '16Bits Lt Violet', color: '#bba0cc', shadow: '#997caa' },
+      { name: '16Bits Purple',    color: '#7755aa', shadow: '#553388' },
+      { name: 'DMG Grape',        color: '#8b2060', shadow: '#6a1045' },
+      { name: 'Blue',             color: '#0055cc', shadow: '#003d99' },
+      { name: 'Starlight Blue',   color: '#3376cc', shadow: '#1a5599' },
+      { name: 'Green',            color: '#009944', shadow: '#006630' },
+      { name: 'Yellow',           color: '#ffcc00', shadow: '#cc9900' },
+      { name: 'Classic Gray',     color: '#aaaaaa', shadow: '#888888' },
+      { name: 'Grey',             color: '#888888', shadow: '#555555' },
+      { name: 'Dark Gray',        color: '#444444', shadow: '#2a2a2a' },
+      { name: 'Black',            color: '#1c1c1c', shadow: '#0a0a0a' },
+      { name: 'White',            color: '#f0f0f0', shadow: '#cccccc' },
+      { name: 'Pink',             color: '#f6c5ce', shadow: '#eba4b2' },
+    ];
+
+
+    /* ═══════════════════════════════════════════════════════════════════
+       ZONE DEFINITIONS
+    ═══════════════════════════════════════════════════════════════════ */
+
+    const ZONES = {
+      'shell-top': { label: 'Shell',  palette: SHELL_COLORS,  color: '#f0f0f0' },
+      'shell-bot': { label: 'Shell',  palette: SHELL_COLORS,  color: '#f0f0f0' },
+      dpad:        { label: 'D-Pad',          palette: BUTTON_COLORS, color: '#f0f0f0' },
+      'btn-a':     { label: 'A Button',       palette: BUTTON_COLORS, color: '#f0f0f0' },
+      'btn-b':     { label: 'B Button',       palette: BUTTON_COLORS, color: '#f0f0f0' },
+      'btn-x':     { label: 'X Button',       palette: BUTTON_COLORS, color: '#f0f0f0' },
+      'btn-y':     { label: 'Y Button',       palette: BUTTON_COLORS, color: '#f0f0f0' },
+      startsel:    { label: 'Start & Select', palette: BUTTON_COLORS, color: '#f0f0f0' },
+    };
+
+
+    /* ═══════════════════════════════════════════════════════════════════
+       THEME PRESETS
+    ═══════════════════════════════════════════════════════════════════ */
+
+    const THEMES = {
+      sfc: {
+        'shell-top': { color: '#c0bcc8', shadow: '#9e9aa6' },
+        'shell-bot': { color: '#c0bcc8', shadow: '#9e9aa6' },
+        dpad:        { color: '#444444', shadow: '#2a2a2a' },
+        'btn-a':     { color: '#cc2200', shadow: '#991a00' },
+        'btn-b':     { color: '#ffcc00', shadow: '#cc9900' },
+        'btn-x':     { color: '#0055cc', shadow: '#003d99' },
+        'btn-y':     { color: '#009944', shadow: '#006630' },
+        startsel:    { color: '#444444', shadow: '#2a2a2a' },
+      },
+      snes: {
+        'shell-top': { color: '#bebbbe', shadow: '#9e9ea0' },
+        'shell-bot': { color: '#bebbbe', shadow: '#9e9ea0' },
+        dpad:        { color: '#444444', shadow: '#2a2a2a' },
+        'btn-a':     { color: '#7755aa', shadow: '#553388' },
+        'btn-b':     { color: '#7755aa', shadow: '#553388' },
+        'btn-x':     { color: '#bba0cc', shadow: '#997caa' },
+        'btn-y':     { color: '#bba0cc', shadow: '#997caa' },
+        startsel:    { color: '#444444', shadow: '#2a2a2a' },
+      },
+      dmg: {
+        'shell-top': { color: '#b0b0b0', shadow: '#888888' },
+        'shell-bot': { color: '#b0b0b0', shadow: '#888888' },
+        dpad:        { color: '#444444', shadow: '#2a2a2a' },
+        'btn-a':     { color: '#8b2060', shadow: '#6a1045' },
+        'btn-b':     { color: '#8b2060', shadow: '#6a1045' },
+        'btn-x':     { color: '#8b2060', shadow: '#6a1045' },
+        'btn-y':     { color: '#8b2060', shadow: '#6a1045' },
+        startsel:    { color: '#444444', shadow: '#2a2a2a' },
+      },
+      monster: {
+        'shell-top': { color: '#e23b41', shadow: '#b82a2f' },
+        'shell-bot': { color: '#e23b41', shadow: '#b82a2f' },
+        dpad:        { color: '#1c1c1c', shadow: '#0a0a0a' },
+        'btn-a':     { color: '#f0f0f0', shadow: '#cccccc' },
+        'btn-b':     { color: '#f0f0f0', shadow: '#cccccc' },
+        'btn-x':     { color: '#f0f0f0', shadow: '#cccccc' },
+        'btn-y':     { color: '#f0f0f0', shadow: '#cccccc' },
+        startsel:    { color: '#0055cc', shadow: '#003d99' },
+      },
+      gamecube: {
+        'shell-top': { color: '#6b3fa0', shadow: '#4a2b72' },
+        'shell-bot': { color: '#6b3fa0', shadow: '#4a2b72' },
+        dpad:        { color: '#aaaaaa', shadow: '#888888' },
+        'btn-a':     { color: '#009944', shadow: '#006630' },
+        'btn-b':     { color: '#cc2200', shadow: '#991a00' },
+        'btn-x':     { color: '#aaaaaa', shadow: '#888888' },
+        'btn-y':     { color: '#aaaaaa', shadow: '#888888' },
+        startsel:    { color: '#aaaaaa', shadow: '#888888' },
+      },
+      reset: {
+        'shell-top': { color: '#f0f0f0', shadow: '#cccccc' },
+        'shell-bot': { color: '#f0f0f0', shadow: '#cccccc' },
+        dpad:        { color: '#f0f0f0', shadow: '#cccccc' },
+        'btn-a':     { color: '#f0f0f0', shadow: '#cccccc' },
+        'btn-b':     { color: '#f0f0f0', shadow: '#cccccc' },
+        'btn-x':     { color: '#f0f0f0', shadow: '#cccccc' },
+        'btn-y':     { color: '#f0f0f0', shadow: '#cccccc' },
+        startsel:    { color: '#f0f0f0', shadow: '#cccccc' },
+      },
+    };
+
+
+    /* ═══════════════════════════════════════════════════════════════════
+       COLOUR HELPERS
+    ═══════════════════════════════════════════════════════════════════ */
+
+    function isColorDark(hex) {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return (r * 0.299 + g * 0.587 + b * 0.114) < 140;
+    }
+
+    /* Blends two hex colours — used to replace color-mix() for html2canvas compat */
+    function blendHex(hex1, hex2, pct) {
+      const p = Math.max(0, Math.min(1, pct));
+      const parse = h => [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
+      const [r1,g1,b1] = parse(hex1);
+      const [r2,g2,b2] = parse(hex2);
+      return '#' + [
+        Math.round(r1*p + r2*(1-p)),
+        Math.round(g1*p + g2*(1-p)),
+        Math.round(b1*p + b2*(1-p)),
+      ].map(v => v.toString(16).padStart(2,'0')).join('');
+    }
+
+    /* Returns an engraved/embossed label colour — lighter on dark, darker on light */
+    function engraveColor(hex) {
+      const r   = parseInt(hex.slice(1, 3), 16);
+      const g   = parseInt(hex.slice(3, 5), 16);
+      const b   = parseInt(hex.slice(5, 7), 16);
+      const amt = isColorDark(hex) ? 60 : -55;
+      const clamp = v => Math.max(0, Math.min(255, v + amt));
+      return '#' + [clamp(r), clamp(g), clamp(b)].map(v => v.toString(16).padStart(2, '0')).join('');
+    }
+
+
+    /* ═══════════════════════════════════════════════════════════════════
+       APPLY COLOUR → CSS CUSTOM PROPERTIES
+    ═══════════════════════════════════════════════════════════════════ */
+
+    function applyColor(zone, c) {
+      const root = document.documentElement;
+      ZONES[zone].color = c.color;
+
+      if (zone === 'shell-top' || zone === 'shell-bot') {
+        root.style.setProperty('--shell-top',        c.color);
+        root.style.setProperty('--shell-top-shadow', c.shadow);
+        root.style.setProperty('--hinge-mid',        blendHex(c.shadow, '#ffffff', 0.8));
+        root.style.setProperty('--shell-bot',        c.color);
+        root.style.setProperty('--shell-bot-shadow', c.shadow);
+        ZONES['shell-top'].color = c.color;
+        ZONES['shell-bot'].color = c.color;
+      } else if (zone === 'dpad') {
+        root.style.setProperty('--dpad',        c.color);
+        root.style.setProperty('--dpad-shadow', c.shadow);
+        root.style.setProperty('--dpad-label',  engraveColor(c.color));
+      } else if (zone === 'btn-a') {
+        root.style.setProperty('--btn-a',        c.color);
+        root.style.setProperty('--btn-a-shadow', c.shadow);
+        root.style.setProperty('--btn-a-label',  engraveColor(c.color));
+      } else if (zone === 'btn-b') {
+        root.style.setProperty('--btn-b',        c.color);
+        root.style.setProperty('--btn-b-shadow', c.shadow);
+        root.style.setProperty('--btn-b-label',  engraveColor(c.color));
+      } else if (zone === 'btn-x') {
+        root.style.setProperty('--btn-x',        c.color);
+        root.style.setProperty('--btn-x-shadow', c.shadow);
+        root.style.setProperty('--btn-x-label',  engraveColor(c.color));
+      } else if (zone === 'btn-y') {
+        root.style.setProperty('--btn-y',        c.color);
+        root.style.setProperty('--btn-y-shadow', c.shadow);
+        root.style.setProperty('--btn-y-label',  engraveColor(c.color));
+      } else if (zone === 'startsel') {
+        root.style.setProperty('--startsel',        c.color);
+        root.style.setProperty('--startsel-shadow', c.shadow);
+      }
+    }
+
+
+    /* ═══════════════════════════════════════════════════════════════════
+       APPLY THEME
+    ═══════════════════════════════════════════════════════════════════ */
+
+    let activeTheme = null;
+
+    function applyTheme(themeKey) {
+      activeTheme = themeKey;
+      document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.theme === themeKey);
+      });
+      const theme = THEMES[themeKey];
+      Object.keys(ZONES).forEach(zone => {
+        if (theme[zone]) applyColor(zone, theme[zone]);
+      });
+    }
+
+
+    /* ═══════════════════════════════════════════════════════════════════
+       COLOUR PICKER POPUP
+    ═══════════════════════════════════════════════════════════════════ */
+
+    const popup       = document.getElementById('popup');
+    const popupLabel  = document.getElementById('popup-label');
+    const popupSwatch = document.getElementById('popup-swatches');
+    let   openZone    = null;
+
+    function openPopup(zone) {
+      openZone = zone;
+      const { label, palette, color: currentColor } = ZONES[zone];
+
+      popupLabel.textContent = label;
+      popupSwatch.innerHTML  = '';
+
+      palette.forEach(c => {
+        const isLight = !isColorDark(c.color);
+        const btn = document.createElement('button');
+        btn.className        = 'swatch' + (c.color === currentColor ? ' active' : '') + (isLight ? ' light-swatch' : '');
+        btn.style.background = c.color;
+        btn.dataset.color    = c.color;
+        btn.title            = c.name;
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          applyColor(zone, c);
+          activeTheme = null;
+          document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+          popupSwatch.querySelectorAll('.swatch').forEach(s => {
+            s.classList.toggle('active', s.dataset.color === c.color);
+          });
+        });
+        popupSwatch.appendChild(btn);
+      });
+
+      /* Position popup below the full DS, clamped to viewport */
+      const ds   = document.getElementById('ds');
+      const rect = ds.getBoundingClientRect();
+      const pw   = 244;
+      const ph   = 170;
+      let   top  = rect.bottom + 16;
+      let   left = rect.left + rect.width / 2 - pw / 2;
+
+      if (top + ph > window.innerHeight - 8) top = Math.max(8, rect.top - ph - 16);
+      left = Math.max(8, Math.min(left, window.innerWidth - pw - 8));
+
+      popup.style.top  = top  + 'px';
+      popup.style.left = left + 'px';
+      popup.classList.add('visible');
+    }
+
+    function closePopup() {
+      popup.classList.remove('visible');
+      openZone = null;
+    }
+
+
+    /* ═══════════════════════════════════════════════════════════════════
+       EVENTS
+    ═══════════════════════════════════════════════════════════════════ */
+
+    document.querySelectorAll('[data-zone]').forEach(el => {
+      el.addEventListener('click', e => {
+        e.stopPropagation();
+        const zone = el.dataset.zone;
+        if (popup.classList.contains('visible') && openZone === zone) {
+          closePopup();
+          return;
+        }
+        openPopup(zone);
+      });
+    });
+
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        applyTheme(btn.dataset.theme);
+        closePopup();
+      });
+    });
+
+    document.addEventListener('click', closePopup);
+    popup.addEventListener('click', e => e.stopPropagation());
+
+
+    /* ═══════════════════════════════════════════════════════════════════
+       EXPORT — Save as PNG
+       Pauses the float animation, captures the DS + shadow with
+       html2canvas at 2× scale, then triggers a PNG download.
+    ═══════════════════════════════════════════════════════════════════ */
+
+    document.getElementById('download-btn').addEventListener('click', async () => {
+      const btn       = document.getElementById('download-btn');
+      const flash     = document.getElementById('export-flash');
+      const ds        = document.getElementById('ds');
+      const container = document.getElementById('ds-container');
+
+      closePopup();
+      btn.classList.add('loading');
+      btn.textContent = 'Exporting…';
+
+      /* Pause any animation on the DS during capture */
+      ds.style.animationPlayState = 'paused';
+
+      /* Brief flash so the user sees something happening */
+      flash.classList.add('show');
+
+      try {
+        const canvas = await html2canvas(container, {
+          backgroundColor: '#ffffff',
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          /* Respect the bounding box of the container */
+          width:  container.offsetWidth,
+          height: container.offsetHeight,
+        });
+
+        const link      = document.createElement('a');
+        link.download   = 'ds-lite.png';
+        link.href       = canvas.toDataURL('image/png');
+        link.click();
+      } catch (err) {
+        console.error('Export failed:', err);
+        alert('Export failed — try right-clicking the page and saving as an image instead.');
+      } finally {
+        ds.style.animationPlayState = '';
+        flash.classList.remove('show');
+        btn.classList.remove('loading');
+
+        /* Restore button label with icon */
+        btn.innerHTML = `
+          <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7 1.5v7M4.5 6.5L7 9l2.5-2.5M2.5 12h9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Save as PNG`;
+      }
+    });
+
+
+    /* ═══════════════════════════════════════════════════════════════════
+       INIT — start on white / reset state
+    ═══════════════════════════════════════════════════════════════════ */
+
+    Object.keys(ZONES).forEach(zone => applyColor(zone, { color: '#f0f0f0', shadow: '#cccccc' }));
+
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+</body>
+</html>
